@@ -95,7 +95,7 @@ Please do not share personal save files or private information in a public bug r
 
 ## License and disclaimer
 
-The addon code is licensed under the **MIT License**; see [LICENSE.txt`](LICENSE.txt). The license applies to the addon code only.
+The addon code is licensed under the **MIT License**; see [LICENSE`](LICENSE). The license applies to the addon code only.
 
 The drop chart data in the `charts/` folder comes from Ephinea and is not covered by the addon code license. Please refer to Ephinea's terms and policies regarding the use and redistribution of that data.
 
