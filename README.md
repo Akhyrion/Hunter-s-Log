@@ -117,7 +117,54 @@ Hunter's Log is a fan project and is not affiliated with, endorsed by, or sponso
 
 ### Total Drops
 
-Track all your rare item drops and Photon Drops,
-with detailed statistics, hit percentages and drop history.
+Every rare item and Photon Drop you have found, with quantity, last drop date, and your best tekked and untekked hit percentages. Filter by item type (weapons, armor, units, event/PD, very rare, common weapons) and search by name.
 
 ![Hunter's Log - Total Drops](Screenshots/total-drop.png)
+
+### Drop History
+
+A full log of every drop: date, item, weapon stats, difficulty, area, section ID, monster, kills before the drop, drop rate and the DAR / RDR / RER bonuses active at that moment. Star your favorites, filter by item or section ID, and use the color-coded stats scale to spot good rolls quickly.
+
+![Hunter's Log - Drop History](Screenshots/drop-history.png)
+
+### Drops by Section ID
+
+See at a glance what you found with each section ID. Hover an item to get the details of the last 10 drop (date, area, monster, stats, kills). Filter by difficulty and item type.
+
+![Hunter's Log - Drops by Section ID](Screenshots/drop-per-id.png)
+
+### Bestiary
+
+Kills and drops per monster, grouped by area. Each line shows the item, total kills, kills without a drop, the drop rate and how your kill count compares to the expected rate. Filter by section ID, episode, difficulty and area.
+
+![Hunter's Log - Bestiary](Screenshots/bestiary.png)
+
+### Game History
+
+Your recent games, with the quest played, room section ID, difficulty, duration and the drops obtained during the quest. Rare monsters seen are shown, and each game can be expanded to list its drops. Favorite or delete entries as needed.
+
+![Hunter's Log - Game History](Screenshots/history_games.png)
+
+### Career Statistics
+
+Your lifetime records: rare items found, best hits, most-killed monsters, rare monsters and bosses, and your most-played quests. Hover a quest or record for extra details.
+
+![Hunter's Log - Career](Screenshots/Career.png)
+
+### Kill Counter Window
+
+A compact in-game window showing, for the current area, section ID and difficulty: total kills (with session kills in green), kills without a drop, and drops per monster.
+
+![Hunter's Log - Kill Counter](Screenshots/killcounter.png)
+
+### Drop Notifications
+
+An on-screen pop-up appears when you find a rare weapon, showing its name, stats and actual drop rate. Size, opacity, theme, position and text outline are configurable.
+
+![Hunter's Log - Drop pop-up](Screenshots/Pop-up.png)
+
+### Rare Monster Alerts
+
+A separate pop-up warns you when a rare monster appears, with its name and the area it was spotted in.
+
+![Hunter's Log - Rare monster pop-up](Screenshots/Pop-up2.png)
