@@ -6,7 +6,7 @@ Hunter's Log tracks rare drops and keeps a detailed record of your hunts, kills,
 
 - **Author:** Akhyrion
 - **Version:** 1.0
-- **Languages:** French, English and Japanese. Switch languages with the **FR / EN / JP** buttons; your choice is saved.
+- **Languages:** French, English and Japanese. Switch languages with the **Français / English / 日本語** buttons; your choice is saved.
 
 ## Features
 
