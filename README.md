@@ -24,8 +24,19 @@ Hunter's Log tracks rare drops and keeps a detailed record of your hunts, kills,
 
 ## Requirements
 
-- PSO Ephinea with the addon system enabled.
-- The `solylib` library, included with the standard Ephinea addons. If you don't have it, download it from [Solybum](https://github.com/Solybum/PSOBBaddonplugin) and copy the **`solylib`** folder into your `addons` folder.
+## Requirements
+
+To use Hunter's Log you need three things:
+
+1. **The addon plugin for PSOBB** (the system that lets the game load addons).
+   Download it from [Solybum/psobbaddonplugin](https://github.com/Solybum/psobbaddonplugin) (see its [Releases](https://github.com/Solybum/psobbaddonplugin/releases) page) and follow the installation instructions in that repository. If your PSO Ephinea installation already has the addon system working (for example, if other addons already appear in your addon list), you can skip this step.
+
+2. **Microsoft Visual C++ Redistributable for Visual Studio 2015**, required by the addon plugin.
+   Download: [Visual C++ Redistributable for Visual Studio 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
+
+3. **The `solylib` library**, required by Hunter's Log.
+   Download it from [Solybum/PSOBBMod-Addons](https://github.com/Solybum/PSOBBMod-Addons) (**Code → Download ZIP**), then copy the **`solylib`** folder into your game's `addons` folder.
+   If you already use addons such as Item Reader, you most likely already have `solylib`.
 
 ## Installation
 
