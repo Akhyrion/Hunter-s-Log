@@ -109,4 +109,4 @@ Hunter's Log is a fan project and is not affiliated with, endorsed by, or sponso
 Track all your rare item drops and Photon Drops,
 with detailed statistics, hit percentages and drop history.
 
-![Hunter's Log - Total Drops](Hunter's%20Log/Screenshots/Total-drop.png)
+![Hunter's Log - Total Drops](screenshots/drop-total.png)
