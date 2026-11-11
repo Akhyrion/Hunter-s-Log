@@ -100,3 +100,13 @@ The addon code is licensed under the **MIT License**; see [`LICENSE`](LICENSE). 
 The drop chart data in the `charts/` folder comes from Ephinea and is not covered by the addon code license. Please refer to Ephinea's terms and policies regarding the use and redistribution of that data.
 
 Hunter's Log is a fan project and is not affiliated with, endorsed by, or sponsored by SEGA or Ephinea.
+
+
+## Screenshots
+
+### Total Drops
+
+Track all your rare item drops and Photon Drops,
+with detailed statistics, hit percentages and drop history.
+
+![Hunter's Log - Total Drops](screenshots/Total-drop.png)
