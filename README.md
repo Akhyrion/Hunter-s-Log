@@ -25,7 +25,7 @@ Hunter's Log tracks rare drops and keeps a detailed record of your hunts, kills,
 ## Requirements
 
 - PSO Ephinea with the addon system enabled.
-- The `solylib` library, included with the standard Ephinea addons. If you don't have it, download it from [Solybum/PSOBBMod-Addons](https://github.com/Solybum/PSOBBMod-Addons) and copy the **`solylib`** folder into your `addons` folder.
+- The `solylib` library, included with the standard Ephinea addons. If you don't have it, download it from [Solybum/PSOBBMod-Addons](https://github.com/Solybum/PSOBBaddonplugin) and copy the **`solylib`** folder into your `addons` folder.
 
 ## Installation
 
