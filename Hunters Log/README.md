@@ -3,7 +3,7 @@
 A drop tracker and hunting journal for PSO Ephinea.
 
 **Author:** Akhyrion  
-**Version:** 1.0  
+**Version:** 1.1  
 **Languages:** French, English and Japanese.
 
 ## FEATURES
@@ -19,6 +19,7 @@ A drop tracker and hunting journal for PSO Ephinea.
 - Customizable very rare item filter and minimum hit filter.
 - Text export and automatic backups.
 - Customizable themes, opacity and hotkey.
+- Level 30 offensive techniques have been added as super-rare drops.
 
 ## INSTALLATION
 
