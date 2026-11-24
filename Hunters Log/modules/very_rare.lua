@@ -4,8 +4,10 @@ local imgui = require("imgui")
 return function(K)
 K.VR = {
   names = {}, name_list = {}, rules = {}, rule_list = {}, disabled = {}, version = 0, key_memo = {},
+  techs = {}, tech_list = {}, tech_level = 30, tech_memo = {},
   ui = { name_text = "", rule_text = "", rule_hit = 50, open = { manual = true }, hit = {} },
   presets = {
+    techs = { "Foie", "Gifoie", "Rafoie", "Barta", "Gibarta", "Rabarta", "Zonde", "Gizonde", "Razonde", "Grants", "Megid" },
     names = {
       { cat = "weapon", list = { "Agito (1975)", "Handgun: Milla", "Yasha", "NUG2000-Bazooka", "Lavis Cannon" } },
       { cat = "barrier", list = { "Red Ring", "S-Parts ver2.01" } },
@@ -34,7 +36,8 @@ K.VR = {
   },
 }
 
-K.VR.defaults = { names = {}, rules = {} }
+K.VR.defaults = { names = {}, rules = {}, techs = {} }
+for _, name in ipairs(K.VR.presets.techs) do K.VR.defaults.techs[#K.VR.defaults.techs + 1] = name end
 K.VR.preset_name_keys, K.VR.preset_rule_keys = {}, {}
 
 function K.VR.key(name)
@@ -60,16 +63,25 @@ function K.VR.rebuild()
     local key = K.VR.key(rule.name)
     if not K.VR.disabled[key] then K.VR.rules[key] = rule.hit end
   end
+  K.VR.techs, K.VR.tech_memo = {}, {}
+  for _, name in ipairs(K.VR.tech_list) do K.VR.techs[string.lower(name)] = true end
   K.VR.version = K.VR.version + 1
   K.BLACKLIST_MEMO = {}
 end
 
 function K.VR.apply(tbl)
   K.VR.name_list, K.VR.rule_list, K.VR.disabled = {}, {}, {}
+  K.VR.tech_list, K.VR.tech_level = {}, 30
   local source = tbl
   if type(source) ~= "table" then
     source = { names = K.VR.defaults.names, rules = K.VR.defaults.rules }
   end
+  -- Old saves have no "techs" entry: start from the defaults (all attack techniques / Grants / Megid on).
+  local tech_source = type(source.techs) == "table" and source.techs or K.VR.defaults.techs
+  for _, name in ipairs(tech_source) do
+    if type(name) == "string" and name ~= "" then K.VR.tech_list[#K.VR.tech_list + 1] = name end
+  end
+  K.VR.tech_level = math.max(1, math.min(30, math.floor(tonumber(source.tlv) or 30)))
   if type(source.names) == "table" then
     for _, name in ipairs(source.names) do
       if type(name) == "string" and K.VR.key(name) ~= "" then
@@ -102,7 +114,9 @@ function K.VR.serialize()
   local off = {}
   for key in pairs(K.VR.disabled) do off[#off + 1] = string.format("%q", key) end
   table.sort(off)
-  return "{names={" .. table.concat(names, ",") .. "},rules={" .. table.concat(rules, ",") .. "},off={" .. table.concat(off, ",") .. "}}"
+  local techs = {}
+  for _, name in ipairs(K.VR.tech_list) do techs[#techs + 1] = string.format("%q", name) end
+  return "{names={" .. table.concat(names, ",") .. "},rules={" .. table.concat(rules, ",") .. "},off={" .. table.concat(off, ",") .. "},techs={" .. table.concat(techs, ",") .. "},tlv=" .. tostring(K.VR.tech_level) .. "}"
 end
 
 function K.VR.hit_from_stats(stats)
@@ -166,6 +180,45 @@ function K.VR.set_rule(name, hit, on, keep_state)
     end
   end
   if on and not found then V.rule_list[#V.rule_list + 1] = { name = name, hit = hit } end
+end
+
+-- Technique disk ("Disk:Grants Lv.30"): very rare when the technique is ticked and its level >= tech_level.
+-- Parses a technique disk name ("Disk:Grants Lv.30"): returns the lowercase technique name and its level.
+function K.VR.tech_parse(name)
+  if type(name) ~= "string" then return nil end
+  local text = string.lower(name)
+  text = string.gsub(text, "^disk%s*:?%s*", "")
+  local tech, level = string.match(text, "^([%a%s]-)[%s/:]*lv%.?%s*(%d+)")
+  if not tech then return nil end
+  tech = string.gsub(string.gsub(tech, "^%s+", ""), "%s+$", "")
+  return tech, tonumber(level)
+end
+
+function K.VR.tech_match(name)
+  if next(K.VR.techs) == nil or type(name) ~= "string" then return false end
+  local memo = K.VR.tech_memo[name]
+  if memo ~= nil then return memo end
+  local tech, level = K.VR.tech_parse(name)
+  local result = tech ~= nil and K.VR.techs[tech] == true and (level or 0) >= K.VR.tech_level
+  K.VR.tech_memo[name] = result
+  return result
+end
+
+-- Name-based very rare check (custom names + technique disks).
+function K.VR.is_name(name)
+  return K.VR.names[K.VR.key(name)] == true or K.VR.tech_match(name)
+end
+
+function K.VR.set_tech(name, on)
+  local V = K.VR
+  local key = string.lower(name)
+  local found = false
+  for i = #V.tech_list, 1, -1 do
+    if string.lower(V.tech_list[i]) == key then
+      if on and not found then found = true else table.remove(V.tech_list, i) end
+    end
+  end
+  if on and not found then V.tech_list[#V.tech_list + 1] = name end
 end
 
 K.VR.apply(nil)
@@ -373,6 +426,52 @@ function K.draw_vr_options()
             changed = true
           end
         end
+      end)
+    end
+  end
+
+  do
+    local group = V.presets.techs
+    local total, on = #group, 0
+    for _, name in ipairs(group) do
+      if V.techs[string.lower(name)] then on = on + 1 end
+    end
+    local title = string.format("%s (%d/%d)", K.U.T("vr_techs"), on, total)
+    local open = fold_header("techs", title, function()
+      imgui.SameLine(0, 10)
+      if imgui.Button(K.U.T("vr_all") .. "##vr_all_techs") then
+        for _, name in ipairs(group) do V.set_tech(name, true) end
+        changed = true
+      end
+      imgui.SameLine(0, 4)
+      if imgui.Button(K.U.T("vr_none") .. "##vr_none_techs") then
+        for _, name in ipairs(group) do V.set_tech(name, false) end
+        changed = true
+      end
+    end)
+    if open then
+      imgui.Text(K.U.T("vr_tech_lv") .. " " .. tostring(V.tech_level))
+      imgui.SameLine(0, 8)
+      if imgui.Button("-##vr_tl_m") then
+        V.tech_level = math.max(1, V.tech_level - 1)
+        changed = true
+      end
+      imgui.SameLine(0, 4)
+      if imgui.Button("+##vr_tl_p") then
+        V.tech_level = math.min(30, V.tech_level + 1)
+        changed = true
+      end
+      local widest = 0
+      for _, name in ipairs(group) do widest = math.max(widest, text_width(name)) end
+      grid(#group, widest + check_w + 24, 4, function(index)
+        local name = group[index]
+        local active = V.techs[string.lower(name)] == true
+        local toggled, value = imgui.Checkbox("##vrt_" .. index, active)
+        if toggled then
+          V.set_tech(name, value)
+          changed = true
+        end
+        name_label(name, active)
       end)
     end
   end

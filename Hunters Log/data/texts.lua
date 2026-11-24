@@ -232,6 +232,8 @@ vr_col_hit={fr="Armes tres rares selon le hit (hit min.)",en="Weapons very rare 
 vr_cat_weapon={fr="Armes",en="Weapons",ja="武器"},
 vr_cat_barrier={fr="Barriers",en="Barriers",ja="バリア"},
 vr_cat_other={fr="Autres",en="Other",ja="その他"},
+vr_techs={fr="Techniques (disques) tres rares",en="Very rare technique disks",ja="超レアテクニックディスク"},
+vr_tech_lv={fr="Niveau min. :",en="Min level:",ja="最低レベル:"},
 vr_manual={fr="Ajoutes a la main",en="Added by hand",ja="手動で追加"},
 vr_all={fr="Tout",en="All",ja="全部"},
 vr_none={fr="Rien",en="None",ja="解除"},

@@ -648,7 +648,7 @@ local function hsv_to_rgb(h, s, v)
 end
 
 local function item_category(kind, name)
-  if name and (special_items[string.lower(tostring(name))] or K.VR.names[K.VR.key(name)]) then return "veryrare" end
+  if name and (special_items[string.lower(tostring(name))] or K.VR.is_name(name)) then return "veryrare" end
   return kind or "other"
 end
 
@@ -713,7 +713,7 @@ local function kind_color(kind, name)
   if (kind == nil or kind == "weapon") and K.COMMON.is_name(name) then
     return K.COMMON.white
   end
-  if kind == "veryrare" or (name and (special_items[string.lower(tostring(name))] or K.VR.names[K.VR.key(name)])) then
+  if kind == "veryrare" or (name and (special_items[string.lower(tostring(name))] or K.VR.is_name(name))) then
     return K.glow_color(name)
   end
   return kind_colors[kind] or kind_colors.other
@@ -1092,11 +1092,19 @@ local function prepare_loaded_data()
   end
   local known = {}
   for _, h in ipairs(drop_history) do
-    if h.key then known[h.key] = true end
+    if h.key then known[h.key] = h end
   end
   local added = false
   for key, d in pairs(item_details) do
-    if not known[key] then
+    local row = known[key]
+    if row then
+      -- Hand-added details (X table) can complete a row that already exists (rate and bonuses).
+      if (row.rate == nil or row.rate == "") and d.rate then row.rate = d.rate end
+      if row.drr == nil and d.drr then row.drr = d.drr end
+      if row.dar == nil and d.dar then row.dar = d.dar end
+      if row.rer == nil and d.rer then row.rer = d.rer end
+    end
+    if not row then
       table.insert(drop_history, {
         time = d.time or 0,
         name = d.name or "Item",
@@ -1105,6 +1113,7 @@ local function prepare_loaded_data()
         difficulty = d.difficulty or "Inconnue",
         section = d.section or "Inconnu",
         source = d.source or "Inconnu",
+        rate = d.rate, drr = d.drr, dar = d.dar, rer = d.rer,
         key = key,
       })
       added = true
@@ -1482,16 +1491,29 @@ local function load_module(name)
 end
 
 local function parse_odds(text)
-  local value = string.match(tostring(text or ""), "1/([%d%.]+)")
+  -- Accepts thousands separators ("1/850,000") as well as plain numbers ("1/311", "1/315.08").
+  local value = string.match(tostring(text or ""), "1/([%d%.,]+)")
+  if not value then return nil end
+  value = string.gsub(value, ",", "")
   return tonumber(value)
 end
 
 local function format_odds(value)
   local text = string.format("%.2f", value)
   text = string.gsub(text, "%.?0+$", "")
+  -- Thousands separator from 100,000 up: 850000 -> "850,000", 1200000 -> "1,200,000".
+  if value >= 100000 then
+    local int_part, rest = string.match(text, "^(%d+)(.*)$")
+    if int_part then
+      local grouped = string.reverse(int_part)
+      grouped = string.gsub(grouped, "(%d%d%d)", "%1,")
+      grouped = string.reverse(grouped)
+      grouped = string.gsub(grouped, "^,", "")
+      text = grouped .. rest
+    end
+  end
   return text
 end
-
 
 local difficulty_labels = K.GAME_DATA.difficulty_labels
 
@@ -1725,6 +1747,7 @@ local function find_drop_source(item_name, floor, is_weapon)
     local best_rare_rate = {}
     local rare_names = {}
     local best_key = {}
+    local fixed_names = {}
     local function add(name, odds, text, dar_text, rare_rate_text, is_rare_enemy, monster_key)
       odds = odds or 1000000000
       if best[name] == nil or odds < best[name] then
@@ -1794,6 +1817,30 @@ local function find_drop_source(item_name, floor, is_weapon)
         end
       end
     end
+    do
+      -- Lv30 technique disks (Ultimate): source and rate from data/tech30.lua (wiki rates, no DAR/RDR scaling).
+      local tech_key, tech_level = K.VR.tech_parse(item_name)
+      local tech_data = (tech_key and tech_level == 30 and difficulty == 3) and load_module("Hunters Log.data.tech30") or nil
+      local area = tech_data and tech_data.area(tech_key, episode, floor) or nil
+      if area then
+        local death_keys = {}
+        for _, death in ipairs(K.RECENT_DEATHS or {}) do
+          if frame_counter - death.frame <= K.death_window(death.key) then death_keys[#death_keys + 1] = death.key end
+        end
+        local resolve = nil
+        if rares and K.KEYALIAS then resolve = function(key) return K.KEYALIAS.resolve(rares, key) end end
+        local list, box_odds = tech_data.candidates(area, monsters, death_keys, enemies, resolve)
+        for _, candidate in ipairs(list) do
+          add(candidate.display, candidate.odds, "1/" .. tostring(candidate.odds), nil, nil, nil, candidate.key)
+          fixed_names[candidate.display] = true
+        end
+        if box_odds then
+          local box_name = "Caisse (" .. tostring((box_keys[episode] and box_keys[episode][floor]) or area.name) .. ")"
+          add(box_name, box_odds, "1/" .. tostring(box_odds))
+          fixed_names[box_name] = true
+        end
+      end
+    end
     local names = {}
     for name, _ in pairs(best) do
       table.insert(names, name)
@@ -1829,7 +1876,7 @@ local function find_drop_source(item_name, floor, is_weapon)
         local rare_eff = math.min(100, rare_base * (rdr_mult or 1))
         odds = 10000 / (dar_eff * rare_eff)
       elseif base then
-        odds = base / ((rdr_mult or 1) * (dar_mult or 1))
+        odds = base / (fixed_names[name] and 1 or ((rdr_mult or 1) * (dar_mult or 1)))
       end
       rate_list[#rate_list + 1] = odds and ("1/" .. format_odds(odds)) or "?"
       rate_by_name[name] = rate_list[#rate_list]
@@ -1865,8 +1912,13 @@ local function find_drop_source(item_name, floor, is_weapon)
         break
       end
     end
+    local bonus_applies = false
+    for _, name in ipairs(names) do
+      if not fixed_names[name] then bonus_applies = true end
+    end
     return table.concat(names, " / "), table.concat(rate_list, " / "),
-    rdr_mult and game_rdr_percent or nil, dar_mult and game_dar_percent or nil, game_rer_percent,
+    (bonus_applies and rdr_mult) and game_rdr_percent or nil, (bonus_applies and dar_mult) and game_dar_percent or nil,
+    bonus_applies and game_rer_percent or nil,
     (#rare_list > 0) and table.concat(rare_list, " / ") or nil, key_list
   end)
   if ok and result then
@@ -2150,7 +2202,7 @@ function K.rare_key_for(monster_id, ep, rares_now)
   return value or nil
 end
 
-K.DEATH_RADIUS = 25
+K.DEATH_RADIUS = 50
 K.SPAWN_DEATH_RADIUS = 150 -- wider radius for monsters whose drop appears away from the corpse (Chaos Sorcerer...)
 K.RAPPY_DEATH_RADIUS = 200
 K.POS_NEAR = K.POS_NEAR or 0
@@ -2775,7 +2827,7 @@ local function is_blacklisted(name)
   local lower_name = string.lower(name)
   if string.find(name, "[\128-\255]") then
     result = true
-  elseif whitelisted_items[lower_name] or K.VR.names[K.VR.key(name)] or K.VR.rules[K.VR.key(name)] then
+  elseif whitelisted_items[lower_name] or K.VR.is_name(name) or K.VR.rules[K.VR.key(name)] then
     result = false
   elseif blacklisted_items[lower_name] then
     result = true
@@ -4087,7 +4139,7 @@ local function expected_kills_of(h)
     index = 1
   end
   if not index then return nil end
-  return tonumber(string.match(rates[index] or "", "1/([%d%.]+)"))
+  return parse_odds(rates[index] or "")
 end
 
 local function format_luck(ratio)
@@ -4454,7 +4506,7 @@ function K.autofav()
   if frame_counter % 30 ~= 0 then return end
   local changed = false
   for _, h in ipairs(drop_history) do
-    if not h.vrdone and K.VR.entry_kind(h) == "veryrare" then
+   if not h.vrdone and item_category(K.VR.entry_kind(h), h.name) == "veryrare" then
       h.vrdone = true
       h.fav = true
       changed = true
